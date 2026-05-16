@@ -1268,4 +1268,34 @@ describe('UwsResponse', () => {
       });
     });
   });
+
+  describe('HEAD requests', () => {
+    beforeEach(() => {
+      res = createResponse();
+    });
+
+    it('should suppress body for HEAD requests with content-length', () => {
+      // Bind a mock request with HEAD method
+      res.bindRequest({ method: 'HEAD' } as any);
+      res.setHeader('content-length', '100').send('Hello World');
+
+      expect(mockUwsRes.endWithoutBody).toHaveBeenCalledWith(100);
+      expect(mockUwsRes.end).not.toHaveBeenCalled();
+    });
+
+    it('should suppress body for HEAD requests without content-length', () => {
+      res.bindRequest({ method: 'HEAD' } as any);
+      res.send('Hello World');
+
+      expect(mockUwsRes.end).toHaveBeenCalledWith();
+      expect(mockUwsRes.end).not.toHaveBeenCalledWith('Hello World');
+    });
+
+    it('should still send body for GET requests', () => {
+      res.bindRequest({ method: 'GET' } as any);
+      res.send('Hello World');
+
+      expect(mockUwsRes.end).toHaveBeenCalledWith('Hello World');
+    });
+  });
 });
